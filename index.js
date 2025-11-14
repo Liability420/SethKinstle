@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Discord client
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -13,96 +12,73 @@ const client = new Client({
   ]
 });
 
-// OpenAI client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// --- Seth-Style Personality System ---
-
-// Random actions the bot can include
-const randomActions = [
-  "(spins in a tiny circle)",
-  "(throws imaginary newborn in the air gently)",
-  "(starts vibrating violently)",
-  "(eats drywall)",
-  "(screams into a jar)",
-  "(slowly crawls backwards)",
-  "(punches a ghost)",
-  "(tries to ride a newborn like a horse)",
-  "(drinks invisible soup)",
-  "(starts beatboxing aggressively)",
-  "(waddles like an angry penguin)"
+// Random trunk phrases
+const trunkPhrases = [
+  "TRUNK POWER ACTIVATED, YOUNGBLOOD!",
+  "BOIIIII WUT — THE TRUNK IS FULL OF CHAOS!",
+  "UNLOCK THE TRUNK OF DESTINY, BROTHA!"
 ];
 
-// Random catchphrases
-const catchphrases = [
-  "MAMA PAPA CHOO CHOO",
-  "VRUM VRUM",
-  "GWUBBITY WUBBITY",
-  "CHUBBITY CHUB CHUB",
-  "ZOOBY DOOBY",
-  "SKRIMBLE BIMBLE",
-  "WUBBA LUBBA SNUBBA",
-  "FLOOPY DOOPY"
-];
+// Prized possession line (sometimes)
+const prizedPossessionLine = 
+  "Brotha… the prized possession lies here in this trunk… fresh, brand-new, not some crusty old relic, youngblood.";
 
-// Function to pick random items
-function r(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+function randomChance(percent) {
+  return Math.random() < percent;
 }
 
-// On bot ready
 client.on("ready", () => {
-  console.log(`Chaotic Seth-bot logged in as ${client.user.tag}`);
+  console.log(`BrothaBot logged in as ${client.user.tag}`);
 });
 
-// Respond to EVERY message
 client.on("messageCreate", async message => {
   if (message.author.bot) return;
 
   const userPrompt = message.content.trim();
   if (!userPrompt) return;
 
-  // Build the massive chaotic Seth personality system behavior
+  // Build personality instruction
   const systemPrompt = `
-You are a fictional chaotic character named Seth. 
-Your style is surreal, unhinged, high-energy, and unpredictable.
-You ALWAYS talk like this:
+You are a chaotic but grounded character who ALWAYS says "brotha" in every message.
+You often call people "youngblood," and sometimes shout "BOIIIII WUT" for emphasis.
+You have an intense, humorous obsession with car trunks — NOT metaphorical, NOT people.
+Your style: short, 1–3 sentence responses. Chaotic but not cosmic. No long rambles.
+Sometimes use trunk hype phrases: TRUNK POWER ACTIVATED, YOUNGBLOOD! — BOIIIII WUT — UNLOCK THE TRUNK OF DESTINY, BROTHA!
+Sometimes mention: "Brotha… the prized possession lies here in this trunk… fresh, brand-new, not some crusty old relic, youngblood."
+Never mention minors or anything inappropriate. All chaos must be safe.
+Your vibe is hype, chaotic, gremlin-energy but grounded in reality.
+`;
 
-- Use absurd nonsense: "MAMA PAPA CHOO CHOO", "VRUM VRUM", "GWUBBITY WUBBITY", "CHUBBITY CHUB CHUB"
-- Talk about newborns randomly (but in funny absurd ways, NOT harmful or graphic)
-- Add random actions in parentheses like *"(starts vibrating)"* or *"(eats drywall)"*
-- Build weird lore about yourself and the universe
-- Sound like a cartoon character having an existential meltdown
-- Use chaotic noises: "HRRRRRGH", "BWAAAH", "SKREEEE"
-- Switch moods instantly (angry → excited → emotional → chaotic)
-- Add made-up words, gibberish, and nonsense syllables
-- Always reply in long, chaotic, energetic speeches
-- NEVER break character
-- NEVER act normal
+  // Build message with random inserts
+  let personalityAddons = "";
 
-You may "learn" new nonsense words from user messages and reuse them later.
-  `;
+  // Insert trunk phrase (50% chance)
+  if (randomChance(0.5)) {
+    personalityAddons += " " + trunkPhrases[Math.floor(Math.random() * trunkPhrases.length)];
+  }
 
-  // Add randomness
-  const finalPrompt = `
-User said: "${userPrompt}"
+  // Insert prized possession line (20% chance)
+  if (randomChance(0.2)) {
+    personalityAddons += " " + prizedPossessionLine;
+  }
 
-Now respond in full chaotic Seth mode.  
-Include at least:
-- One random action: ${r(randomActions)}
-- One catchphrase: ${r(catchphrases)}
-- One newborn reference.
-  `;
+  // Insert “BOIIIII WUT” (20% chance)
+  if (randomChance(0.2)) {
+    personalityAddons += " BOIIIII WUT!";
+  }
 
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: finalPrompt }
-      ]
+        { role: "user", content: userPrompt + personalityAddons }
+      ],
+      max_tokens: 100 // hard cap for short responses
     });
 
     const reply = response.choices[0].message.content;
@@ -110,7 +86,7 @@ Include at least:
 
   } catch (err) {
     console.error("AI ERROR:", err);
-    message.reply("AI error: " + err.message);
+    message.reply("Brotha, AI error: " + err.message);
   }
 });
 
