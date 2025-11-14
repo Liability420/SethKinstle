@@ -25,11 +25,11 @@ client.on("ready", () => {
 
 // Respond to EVERY message
 client.on("messageCreate", async message => {
-  // Ignore bot messages so it doesn’t talk to itself
+  // Ignore bot messages
   if (message.author.bot) return;
 
   const userPrompt = message.content.trim();
-  if (!userPrompt) return; // Ignore empty messages
+  if (!userPrompt) return;
 
   try {
     const response = await openai.chat.completions.create({
@@ -38,4 +38,13 @@ client.on("messageCreate", async message => {
     });
 
     const reply = response.choices[0].message.content;
-    message.reply(r
+    message.reply(reply);
+
+  } catch (err) {
+    console.error("AI ERROR:", err);
+    message.reply("AI error: " + err.message);
+  }
+});
+
+// Login bot
+client.login(process.env.DISCORD_TOKEN);
