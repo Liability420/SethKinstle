@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Create Discord client
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -12,20 +13,23 @@ const client = new Client({
   ]
 });
 
+// Create OpenAI client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+// When bot logs in
 client.on("ready", () => {
   console.log(`Bot logged in as ${client.user.tag}`);
 });
 
+// Respond to EVERY message
 client.on("messageCreate", async message => {
+  // Ignore bot messages so it doesn’t talk to itself
   if (message.author.bot) return;
-  if (!message.content.startsWith("!ai")) return;
 
-  const userPrompt = message.content.replace("!ai", "").trim();
-  if (!userPrompt) return message.reply("Ask me something after !ai");
+  const userPrompt = message.content.trim();
+  if (!userPrompt) return; // Ignore empty messages
 
   try {
     const response = await openai.chat.completions.create({
@@ -34,12 +38,4 @@ client.on("messageCreate", async message => {
     });
 
     const reply = response.choices[0].message.content;
-    message.reply(reply);
-
-  } catch (err) {
-    console.error(err);
-    message.reply("AI error.");
-  }
-});
-
-client.login(process.env.DISCORD_TOKEN);
+    message.reply(r
